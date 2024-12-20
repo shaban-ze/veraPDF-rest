@@ -2,17 +2,8 @@
 # First build the app on a maven open jdk 11 container
 FROM maven:3-eclipse-temurin-11-alpine AS app-builder
 RUN apk add --no-cache git
-WORKDIR /build
 
-# A specifc git branch, tag or commit to build from, defaults to master (release build)
-ARG GH_CHECKOUT
-ENV GH_CHECKOUT=${GH_CHECKOUT:-master}
-
-# Clone the repo, checkout the revision and build the application
-RUN git clone https://github.com/veraPDF/veraPDF-rest.git
-
-WORKDIR /build/veraPDF-rest
-RUN git checkout ${GH_CHECKOUT} && mvn clean package
+RUN mvn clean package
 
 # Now build a Java JRE for the Alpine application image
 # https://github.com/docker-library/docs/blob/master/eclipse-temurin/README.md#creating-a-jre-using-jlink
@@ -52,10 +43,10 @@ USER verapdf-rest
 WORKDIR /opt/verapdf-rest
 
 # Copy the application from the previous stage
-COPY --from=app-builder /build/veraPDF-rest/target/verapdf-rest-${VERAPDF_REST_VERSION}.jar /opt/verapdf-rest/verapdf-rest.jar
+COPY --from=app-builder /target/verapdf-rest-${VERAPDF_REST_VERSION}.jar /opt/verapdf-rest/verapdf-rest.jar
 # Copy the default configuration file
-COPY --from=app-builder /build/veraPDF-rest/server.yml /var/opt/verapdf-rest/config/
-COPY --from=app-builder /build/veraPDF-rest/config /opt/verapdf-rest/config/
+COPY --from=app-builder /server.yml /var/opt/verapdf-rest/config/
+COPY --from=app-builder /config /opt/verapdf-rest/config/
 
 VOLUME /var/opt/verapdf-rest
 EXPOSE 8080
