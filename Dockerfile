@@ -9,12 +9,8 @@ COPY . /build/veraPDF-rest
 
 WORKDIR /build/veraPDF-rest
 
-# Set the default branch for the repository
-ARG GH_CHECKOUT
-ENV GH_CHECKOUT=${GH_CHECKOUT:-master}
-
 # Checkout the specific branch/tag/commit and build the app
-RUN git checkout ${GH_CHECKOUT} && mvn clean package
+RUN mvn clean package
 
 # Now create a custom Java JRE for the Alpine image
 FROM eclipse-temurin:11-jdk-alpine as jre-builder
